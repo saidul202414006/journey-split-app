@@ -1,0 +1,1841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Smart expense splitting app for group trips">
+    <meta name="theme-color" content="#0B0F19">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Journey Split">
+    <title>Journey Split</title>
+    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiSm91cm5leSBTcGxpdCIsInNob3J0X25hbWUiOiJTcGxpdCIsInN0YXJ0X3VybCI6Ii4iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjMEIwRjE5IiwidGhlbWVfY29sb3IiOiIjMEIwRjE5IiwiaWNvbnMiOlt7InNyYyI6ImRhdGE6aW1hZ2Uvc3ZnK3htbDtiYXNlNjQsUEhOMlp5QjRiV3h1Y3owaWFIUjBjRG92TDJ4dlkyRnNhRzl6ZEM5aGRYUm9MMk52YlcxaGJtUTZjR0Z6YzNkdmNtUmxjaTh4TURBd01EQXdNREF3TURBd01EQXdNREF3TURBd01EQXdNREF3TURBd01EQXdNREF3TURBd01EQXdNREF3TURBd01EQXdNREF3TURBd01EQXdNREF3TURBd01EQXdNREF3TURBd01EQSIsInNpemVzIjoiMTkyeDE5MiIsInR5cGUiOiJpbWFnZS9zdmcreG1sIn1dfQ==">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        :root {
+            --bg-primary: #0B0F19;
+            --bg-secondary: #111827;
+            --bg-card: #151B2B;
+            --bg-input: #0F1525;
+            --border: rgba(148, 163, 184, 0.12);
+            --border-focus: rgba(139, 92, 246, 0.4);
+            --text-primary: #F1F5F9;
+            --text-secondary: #94A3B8;
+            --text-muted: #64748B;
+            --primary: #8b5cf6;
+            --primary-light: #a78bfa;
+            --primary-glow: rgba(139, 92, 246, 0.15);
+            --secondary: #10B981;
+            --secondary-light: #34D399;
+            --accent: #F59E0B;
+            --danger: #EF4444;
+            --radius-lg: 20px;
+            --radius-md: 14px;
+            --radius-sm: 10px;
+            --shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+            --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.5);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; display: flex; justify-content: center; align-items: center; overflow-x: hidden; position: relative; }
+        body::before { content: ''; position: fixed; top: -20%; right: -10%; width: 500px; height: 500px; background: radial-gradient(circle, rgba(139, 92, 246, 0.08), transparent 70%); pointer-events: none; z-index: 0; }
+        body::after { content: ''; position: fixed; bottom: -20%; left: -10%; width: 600px; height: 600px; background: radial-gradient(circle, rgba(245, 158, 11, 0.06), transparent 70%); pointer-events: none; z-index: 0; }
+        #app { width: 100%; max-width: 480px; height: 100vh; max-height: 900px; position: relative; overflow: hidden; background: var(--bg-primary); z-index: 1; scrollbar-width: none; -ms-overflow-style: none; }
+        #app::-webkit-scrollbar { display: none; }
+
+        /* ===== 3D GALAXY LOGO (Enhanced Multi-Color, Multi-Orbit) ===== */
+        .galaxy-logo-container { width: 150px; height: 150px; margin: 0 auto 24px; position: relative; perspective: 1200px; animation: logoFloat 4s ease-in-out infinite; }
+        .galaxy-core { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 42px; height: 42px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #ffffff, #d8b4fe, #8b5cf6, #4c1d95); box-shadow: 0 0 24px rgba(139, 92, 246, 0.65), 0 0 48px rgba(124, 58, 237, 0.35), inset 0 0 14px rgba(255, 255, 255, 0.5); animation: galaxyPulse 4s ease-in-out infinite, coreHueShift 7s linear infinite; z-index: 10; }
+        .galaxy-core::before { content: ''; position: absolute; top: 14%; left: 18%; width: 12px; height: 12px; border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,0.95), rgba(255,255,255,0.2)); filter: blur(1px); }
+        .galaxy-core::after { content: ''; position: absolute; inset: -8px; border-radius: 50%; background: conic-gradient(from 0deg, #f472b6, #fbbf24, #34d399, #60a5fa, #a78bfa, #f472b6); opacity: 0; filter: blur(7px); mix-blend-mode: screen; animation: coreFlare 6s ease-in-out infinite; }
+        .orbit-ring { position: absolute; top: 50%; left: 50%; border: 2px solid; border-radius: 50%; transform-style: preserve-3d; animation: orbitRotate linear infinite; }
+        .orbit-ring.r1 { width: 62px; height: 62px; margin: -31px 0 0 -31px; --rx: 70deg; --ry: 8deg; border-color: rgba(167, 139, 250, 0.4); border-top-color: rgba(167, 139, 250, 0.9); border-bottom-color: transparent; animation-duration: 6s; }
+        .orbit-ring.r2 { width: 78px; height: 78px; margin: -39px 0 0 -39px; --rx: 60deg; --ry: -18deg; border-color: rgba(236, 72, 153, 0.3); border-left-color: rgba(236, 72, 153, 0.85); border-right-color: transparent; animation-duration: 9s; animation-direction: reverse; }
+        .orbit-ring.r3 { width: 96px; height: 96px; margin: -48px 0 0 -48px; --rx: 75deg; --ry: 28deg; border-color: rgba(245, 158, 11, 0.32); border-top-color: transparent; border-bottom-color: rgba(245, 158, 11, 0.78); animation-duration: 12s; }
+        .orbit-ring.r4 { width: 112px; height: 112px; margin: -56px 0 0 -56px; --rx: 64deg; --ry: 52deg; border-color: rgba(96, 165, 250, 0.3); border-left-color: rgba(96, 165, 250, 0.82); border-right-color: transparent; animation-duration: 15s; animation-direction: reverse; }
+        .orbit-ring.r5 { width: 128px; height: 128px; margin: -64px 0 0 -64px; --rx: 80deg; --ry: -42deg; border-color: rgba(52, 211, 153, 0.28); border-top-color: rgba(52, 211, 153, 0.72); border-bottom-color: transparent; animation-duration: 18s; }
+        .orbit-ring.r6 { width: 144px; height: 144px; margin: -72px 0 0 -72px; --rx: 68deg; --ry: 16deg; border-color: rgba(244, 63, 94, 0.25); border-left-color: transparent; border-right-color: rgba(244, 63, 94, 0.68); animation-duration: 21s; animation-direction: reverse; }
+        .orbit-particle { position: absolute; width: 4px; height: 4px; border-radius: 50%; background: #fff; box-shadow: 0 0 6px rgba(255,255,255,0.8); top: -2px; left: 50%; transform: translateX(-50%); }
+        .orbit-particle.p2 { top: auto; bottom: -2px; left: auto; right: 50%; transform: translateX(50%); }
+        .orbit-ring.r1 .orbit-particle { background: #c4b5fd; box-shadow: 0 0 8px rgba(196, 181, 253, 0.9); }
+        .orbit-ring.r2 .orbit-particle { width: 3px; height: 3px; background: #f472b6; box-shadow: 0 0 8px rgba(244, 114, 182, 0.8); }
+        .orbit-ring.r3 .orbit-particle { width: 5px; height: 5px; background: #fbbf24; box-shadow: 0 0 10px rgba(251, 191, 36, 0.8); }
+        .orbit-ring.r4 .orbit-particle { width: 4px; height: 4px; background: #60a5fa; box-shadow: 0 0 9px rgba(96, 165, 250, 0.85); }
+        .orbit-ring.r5 .orbit-particle { width: 3px; height: 3px; background: #34d399; box-shadow: 0 0 8px rgba(52, 211, 153, 0.85); }
+        .orbit-ring.r6 .orbit-particle { width: 4px; height: 4px; background: #fb7185; box-shadow: 0 0 9px rgba(251, 113, 133, 0.85); }
+        .star-field { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        .star { position: absolute; width: 2px; height: 2px; background: white; border-radius: 50%; opacity: 0; animation: starTwinkle 3s ease-in-out infinite; }
+        .galaxy-reflection { position: absolute; bottom: -16px; left: 50%; transform: translateX(-50%) scaleY(-0.3); width: 60px; height: 60px; border-radius: 50%; background: radial-gradient(circle, rgba(139, 92, 246, 0.2), transparent 70%); filter: blur(8px); opacity: 0.5; }
+        @keyframes galaxyPulse { 0%, 100% { box-shadow: 0 0 24px rgba(139, 92, 246, 0.65), 0 0 48px rgba(124, 58, 237, 0.35), inset 0 0 14px rgba(255, 255, 255, 0.5); transform: translate(-50%, -50%) scale(1); } 50% { box-shadow: 0 0 32px rgba(219, 39, 119, 0.55), 0 0 62px rgba(139, 92, 246, 0.45), 0 0 78px rgba(245, 158, 11, 0.25), inset 0 0 18px rgba(255, 255, 255, 0.6); transform: translate(-50%, -50%) scale(1.06); } }
+        @keyframes coreHueShift { 0% { filter: hue-rotate(0deg) saturate(1.15); } 25% { filter: hue-rotate(90deg) saturate(1.35); } 50% { filter: hue-rotate(180deg) saturate(1.5); } 75% { filter: hue-rotate(270deg) saturate(1.35); } 100% { filter: hue-rotate(360deg) saturate(1.15); } }
+        @keyframes coreFlare { 0%, 78%, 100% { opacity: 0; transform: rotate(0deg) scale(1); } 86% { opacity: 0.6; transform: rotate(90deg) scale(1.05); } 93% { opacity: 0.3; transform: rotate(150deg) scale(1); } }
+        @keyframes orbitRotate { 0% { transform: rotateX(var(--rx, 70deg)) rotateY(var(--ry, 10deg)) rotateZ(0deg); } 100% { transform: rotateX(var(--rx, 70deg)) rotateY(var(--ry, 10deg)) rotateZ(360deg); } }
+        @keyframes starTwinkle { 0%, 100% { opacity: 0; transform: scale(0.5); } 50% { opacity: 0.8; transform: scale(1.2); } }
+        @keyframes logoFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+
+        .brand-title { font-size: 30px; font-weight: 800; letter-spacing: -0.5px; color: var(--text-primary); text-align: center; }
+        .brand-subtitle { font-size: 14px; color: var(--text-muted); text-align: center; margin-top: 6px; font-weight: 500; }
+        .brand-creator { font-size: 12px; color: var(--primary-light); font-weight: 600; opacity: 0.9; }
+        .glass-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px; transition: all 0.25s ease; }
+        .glass-card:hover { border-color: var(--border-focus); transform: translateY(-2px); box-shadow: var(--shadow); }
+        .glass-panel { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow); }
+        input, select, textarea { width: 100%; background: var(--bg-input); border: 1px solid var(--border); color: var(--text-primary); padding: 14px 16px; border-radius: var(--radius-md); font-size: 16px; outline: none; transition: all 0.2s; font-weight: 500; }
+        input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-glow); }
+        input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
+        .btn-primary { width: 100%; padding: 16px; border: none; border-radius: var(--radius-md); background: linear-gradient(135deg, var(--primary), #7c3aed); color: white; font-size: 16px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 20px rgba(139, 92, 246, 0.35); transition: all 0.2s; position: relative; overflow: hidden; }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 28px rgba(139, 92, 246, 0.45); }
+        .btn-primary:active { transform: scale(0.98); }
+        .btn-secondary { background: transparent; border: 1px solid var(--border); color: var(--text-secondary); padding: 12px 24px; border-radius: var(--radius-md); font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .btn-secondary:hover { border-color: var(--primary); color: var(--primary); }
+        .btn-icon { width: 36px; height: 36px; border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer; background: rgba(148, 163, 184, 0.1); color: var(--text-muted); transition: all 0.2s; }
+        .btn-icon:hover { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
+        .screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; padding: 24px; padding-bottom: 100px; display: flex; flex-direction: column; overflow-y: auto; opacity: 0; pointer-events: none; transform: translateY(12px); transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1); scrollbar-width: none; -ms-overflow-style: none; z-index: 1; }
+        .screen::-webkit-scrollbar { display: none; }
+        .screen.active { opacity: 1; pointer-events: all; transform: translateY(0); z-index: 10; }
+        .dashboard-header { margin-bottom: 24px; text-align: center; padding: 32px 20px; background: linear-gradient(180deg, rgba(139, 92, 246, 0.08), transparent); border-radius: var(--radius-lg); border: 1px solid var(--border); }
+        .total-spent { font-size: 48px; font-weight: 900; background: linear-gradient(135deg, #ffffff, var(--primary-light)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-top: 8px; letter-spacing: -1px; }
+        .section-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; margin-top: 24px; }
+        .section-title h2 { font-size: 18px; font-weight: 700; color: var(--text-primary); }
+        .add-link { color: var(--secondary); font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+        .journey-item { display: flex; align-items: center; justify-content: space-between; padding: 18px; margin-bottom: 12px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); transition: all 0.25s; }
+        .journey-item:hover { border-color: var(--border-focus); transform: translateX(4px); box-shadow: var(--shadow); }
+        .journey-info { flex: 1; cursor: pointer; }
+        .journey-info h3 { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+        .journey-info p { font-size: 13px; color: var(--text-muted); font-weight: 500; }
+        .journey-actions { display: flex; gap: 8px; }
+        .setup-container { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 24px; padding-top: 40px; min-height: 100%; }
+        .avatar-input-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+        .avatar-placeholder { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; color: white; flex-shrink: 0; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3); }
+        #plans-container { display: flex; flex-direction: column; gap: 16px; margin-bottom: 80px; }
+        .plan-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; transition: all 0.25s; }
+        .plan-card:hover { border-color: var(--border-focus); box-shadow: var(--shadow); }
+        .plan-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+        .plan-header h3 { color: var(--primary-light); font-size: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; margin: 0; }
+        .plan-status { font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 20px; background: rgba(16, 185, 129, 0.1); color: var(--secondary); }
+        .plan-status.warning { background: rgba(245, 158, 11, 0.1); color: var(--accent); }
+        .plan-status.danger { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+        .plan-status.info { background: rgba(139, 92, 246, 0.12); color: var(--primary-light); }
+        input.plan-total-input { width: 90px; background: var(--bg-input); border: 1px solid var(--border); color: var(--secondary-light); padding: 6px 10px; border-radius: 8px; font-size: 13px; font-weight: 700; text-align: right; }
+        .plan-members-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .member-box { background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; position: relative; transition: all 0.2s; }
+        .member-box:hover { border-color: var(--border-focus); }
+        .member-box.not-participated { opacity: 0.4; border: 1px dashed rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.03); }
+        .member-box .member-name { font-size: 11px; color: var(--text-secondary); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.6px; font-weight: 700; }
+        .member-box input.amount-input-inline { width: 100%; background: var(--bg-primary); border: 1px solid var(--border); color: var(--text-primary); padding: 10px; border-radius: 8px; font-size: 18px; font-weight: 700; margin-bottom: 4px; text-align: center; }
+        .member-box input.amount-input-inline:focus { border-color: var(--primary); }
+        .member-options-icon { position: absolute; top: 8px; right: 8px; width: 22px; height: 22px; background: rgba(148, 163, 184, 0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 12px; color: var(--text-muted); transition: all 0.2s; }
+        .member-options-icon:hover { background: var(--primary); color: white; }
+        .member-options-menu { position: absolute; top: 34px; right: 0; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 12px; min-width: 180px; z-index: 1000; box-shadow: var(--shadow-lg); }
+        .option-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border); }
+        .option-row:last-child { border-bottom: none; }
+        .option-row label { font-size: 13px; color: var(--text-secondary); font-weight: 500; }
+        .option-row input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--primary); }
+        .option-row input[type="number"] { width: 70px; padding: 6px; font-size: 13px; background: var(--bg-input); border: 1px solid var(--border); border-radius: 6px; color: var(--text-primary); text-align: right; }
+        .settlement-card { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px; }
+        .settlement-main { display: flex; align-items: center; gap: 12px; }
+        .settlement-arrow { color: var(--text-muted); font-size: 18px; }
+        .settlement-amount { font-size: 20px; font-weight: 800; color: var(--primary-light); margin-left: auto; }
+        .settlement-breakdown { display: none; margin-top: 8px; padding-top: 12px; border-top: 1px dashed var(--border); }
+        .settlement-breakdown.show { display: block; }
+        .breakdown-plan { font-size: 11px; padding: 10px; background: var(--bg-input); border-radius: 8px; margin-bottom: 8px; border-left: 3px solid var(--primary); }
+        .breakdown-plan.negative { border-left-color: var(--danger); }
+        .breakdown-plan.positive { border-left-color: var(--secondary); }
+        .calculation-summary { margin-top: 10px; padding: 10px; background: rgba(139, 92, 246, 0.08); border-radius: 8px; border: 1px solid var(--border-focus); }
+        .view-breakdown-btn { font-size: 11px; color: var(--primary-light); cursor: pointer; text-align: center; padding: 8px; font-weight: 600; }
+        .fab-add { position: fixed; bottom: 24px; right: 24px; width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), #7c3aed); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 28px; box-shadow: 0 8px 32px rgba(139, 92, 246, 0.4); cursor: pointer; border: none; z-index: 50; transition: all 0.3s; }
+        .fab-add:hover { transform: scale(1.08); box-shadow: 0 12px 40px rgba(139, 92, 246, 0.5); }
+        @keyframes slideInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .animate-in { animation: slideInUp 0.4s ease-out; }
+        .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 14px; }
+        .currency-input-group { position: relative; margin-bottom: 24px; }
+        .currency-symbol { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-size: 22px; color: var(--text-muted); font-weight: 700; }
+        .amount-input { font-size: 28px; padding-left: 44px; font-weight: 800; text-align: left; }
+        .person-chip { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 8px; border-radius: var(--radius-md); border: 1px solid transparent; cursor: pointer; transition: all 0.2s; background: var(--bg-input); }
+        .person-chip.selected { background: rgba(139, 92, 246, 0.15); border-color: var(--primary); }
+        .person-chip .avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; font-weight: 700; color: white; }
+        .member-total-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 14px; text-align: center; transition: all 0.2s; }
+        .member-total-card:hover { border-color: var(--border-focus); }
+        .member-total-card h4 { font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; font-weight: 600; }
+        .member-total-card .amount { font-size: 20px; font-weight: 800; color: var(--primary-light); }
+        .back-btn { font-size: 22px; padding: 8px; cursor: pointer; color: var(--text-muted); background: none; border: none; display: flex; align-items: center; }
+        .back-btn:hover { color: var(--text-primary); }
+        .page-title { font-size: 20px; font-weight: 700; margin: 0; }
+        .form-label { font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; display: block; }
+        .add-traveler-btn { display: flex; align-items: center; gap: 8px; justify-content: center; padding: 14px; margin-top: 12px; border: 1px dashed var(--border); border-radius: var(--radius-md); cursor: pointer; color: var(--secondary); font-weight: 600; font-size: 14px; transition: all 0.2s; }
+        .add-traveler-btn:hover { border-color: var(--secondary); background: rgba(16, 185, 129, 0.05); }
+        @media (max-width: 480px) { #app { max-width: 100%; max-height: 100vh; border-radius: 0; } }
+        .toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--bg-card); border: 1px solid var(--border); color: var(--text-primary); padding: 12px 24px; border-radius: var(--radius-md); font-size: 14px; font-weight: 600; z-index: 300; opacity: 0; transition: all 0.3s; box-shadow: var(--shadow-lg); }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+        .new-journey-wrap { margin-top: auto; padding: 24px 0 8px; text-align: center; position: relative; z-index: 10; }
+        .change-holder-select { background: var(--bg-input); border: 1px solid var(--border); color: var(--text-primary); padding: 6px 10px; border-radius: 8px; font-size: 12px; font-weight: 600; margin-left: 8px; cursor: pointer; }
+        .change-holder-select:focus { border-color: var(--primary); outline: none; }
+        .change-display { font-size: 11px; color: var(--accent); font-weight: 600; margin-top: 4px; }
+
+        /* ===== NEW: HORIZONTAL CHANGE CARD (full-width, no wasted space) ===== */
+        .change-summary-bar { display: flex; align-items: center; justify-content: space-between; width: 100%; box-sizing: border-box; background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.2); border-radius: 10px; padding: 10px 14px; margin: 12px 0 16px; flex-wrap: wrap; gap: 8px; }
+        .change-summary-bar .change-info { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .change-summary-bar .change-label { font-size: 12px; color: var(--accent); font-weight: 700; display: flex; align-items: center; gap: 4px; }
+        .change-summary-bar .change-amount { font-size: 14px; color: var(--accent); font-weight: 800; }
+        .change-summary-bar .change-holder-wrap { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+        .change-summary-bar .change-holder-label { font-size: 11px; color: var(--text-muted); font-weight: 500; }
+
+        /* ===== NEW: BREAKDOWN STYLES ===== */
+        .breakdown-plan-title { font-weight: 700; color: #fff; margin-bottom: 6px; font-size: 13px; display: flex; align-items: center; gap: 6px; }
+        .breakdown-step { color: var(--text-secondary); font-size: 11px; margin-bottom: 3px; padding-left: 8px; border-left: 2px solid rgba(139,92,246,0.3); }
+        .breakdown-step.highlight { color: var(--primary-light); border-left-color: var(--primary); }
+        .breakdown-step.debt { color: var(--danger); border-left-color: var(--danger); }
+        .breakdown-step.credit { color: var(--secondary-light); border-left-color: var(--secondary); }
+        .breakdown-divider { border-top: 1px solid rgba(255,255,255,0.08); margin: 6px 0; padding-top: 6px; }
+        .breakdown-meta { color: var(--text-muted); font-size: 10px; margin-bottom: 4px; }
+        .breakdown-balance { font-weight: 700; font-size: 12px; }
+        .aggregate-box { background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.25); border-radius: 8px; padding: 10px; margin-top: 8px; }
+        .aggregate-box .agg-title { color: var(--primary-light); font-weight: 700; font-size: 12px; margin-bottom: 6px; }
+        .aggregate-box .agg-line { color: var(--text-secondary); font-size: 11px; margin-bottom: 3px; }
+        .aggregate-box .agg-result { color: var(--primary-light); font-weight: 800; font-size: 13px; margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(139,92,246,0.2); }
+    </style>
+</head>
+<body>
+
+    <!-- Toast -->
+    <div id="toast" class="toast"></div>
+
+    <div id="app">
+        <!-- SCREEN 1: HOME -->
+        <div id="screen-setup" class="screen active">
+            <div class="setup-container">
+                <div style="text-align: center; margin-bottom: 8px;">
+                    <!-- 3D GALAXY LOGO -->
+                    <div class="galaxy-logo-container">
+                        <div class="star-field" id="star-field"></div>
+                        <div class="orbit-ring r1"><div class="orbit-particle"></div></div>
+                        <div class="orbit-ring r2"><div class="orbit-particle"></div><div class="orbit-particle p2"></div></div>
+                        <div class="orbit-ring r3"><div class="orbit-particle"></div></div>
+                        <div class="orbit-ring r4"><div class="orbit-particle"></div><div class="orbit-particle p2"></div></div>
+                        <div class="orbit-ring r5"><div class="orbit-particle"></div></div>
+                        <div class="orbit-ring r6"><div class="orbit-particle"></div><div class="orbit-particle p2"></div></div>
+                        <div class="galaxy-core"></div>
+                        <div class="galaxy-reflection"></div>
+                    </div>
+                    <div class="brand-title">Journey Split <span class="brand-creator">by Saidul</span></div>
+                    <div class="brand-subtitle">Smart expense splitting for group trips</div>
+                </div>
+
+                <div id="view-journey-list">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <h2 style="margin: 0; font-size: 18px; font-weight: 700;">Your Trips</h2>
+                        <span id="total-trips-count" style="font-size: 12px; color: var(--text-muted); font-weight: 600;">0 Trips</span>
+                    </div>
+                    <div id="saved-journeys-container" style="padding-bottom: 20px;"></div>
+                    <div class="new-journey-wrap">
+                        <button onclick="showCreateView()" class="btn-primary" style="width: auto; padding: 16px 32px; border-radius: 30px; display: inline-flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 22px; line-height: 1;">+</span>
+                            <span>New Journey</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="view-create-journey" style="display: none;">
+                    <div style="display: flex; align-items: center; margin-bottom: 24px;">
+                        <button class="back-btn" onclick="showListView()">←</button>
+                        <h2 id="create-view-title" class="page-title" style="margin-left: 8px;">New Journey</h2>
+                    </div>
+                    <div style="margin-bottom: 24px;">
+                        <label class="form-label">Trip Name</label>
+                        <input type="text" id="journey-name" placeholder="e.g. Sajek Tour 2026">
+                    </div>
+                    <div class="glass-panel">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                            <h3 style="margin: 0; font-size: 16px; font-weight: 700;">Travelers</h3>
+                            <span id="member-count" style="font-size: 12px; background: var(--bg-input); padding: 4px 10px; border-radius: 12px; font-weight: 600; color: var(--text-muted);">2</span>
+                        </div>
+                        <div id="members-container"></div>
+                        <div onclick="addMemberInput()" class="add-traveler-btn">
+                            <span>+</span> Add Traveler
+                        </div>
+                    </div>
+                    <button id="btn-save-journey" class="btn-primary" onclick="createNewJourney()" style="margin-top: 24px;">Start Planning →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCREEN 2: DASHBOARD -->
+        <div id="screen-dashboard" class="screen">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+                <button class="back-btn" onclick="showScreen('screen-setup')">←</button>
+                <div style="font-weight: 700; font-size: 16px; color: var(--text-primary); letter-spacing: 1px; text-transform: uppercase;">Dashboard <span class="brand-creator">by Saidul</span></div>
+                <div style="width: 40px;"></div>
+            </div>
+            <div class="dashboard-header">
+                <h3 id="dashboard-title" style="color: var(--secondary); font-size: 24px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px;">Current Trip</h3>
+                <div class="total-spent">৳ <span id="display-total">0</span></div>
+                <p style="margin-top: 8px; color: var(--text-muted); font-size: 14px; font-weight: 500;">Total Tour Expense</p>
+            </div>
+            <h3 style="margin-bottom: 12px; font-size: 14px; font-weight: 700;">Member Expenses</h3>
+            <div id="member-totals-container" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 24px;"></div>
+            <div class="section-title">
+                <h2>Plans</h2>
+                <div onclick="addNewPlan()" class="add-link"><span style="font-size: 20px;">+</span> Add</div>
+            </div>
+            <div id="plans-container">
+                <div class="empty-state">No plans yet.<br>Tap + to add one.</div>
+            </div>
+        </div>
+
+        <button id="main-fab" class="fab-add" onclick="showScreen('screen-settlement')" style="display: none;">💰</button>
+
+        <!-- SCREEN 3: ADD PLAN -->
+        <div id="screen-add" class="screen">
+            <div style="display: flex; align-items: center; margin-bottom: 32px;">
+                <button class="back-btn" onclick="showScreen('screen-dashboard')">←</button>
+                <h2 class="page-title" style="margin-left: 8px;">Add Plan</h2>
+            </div>
+            <label class="form-label">Plan Name</label>
+            <input type="text" id="plan-title" placeholder="e.g. Restaurant Lunch, Bus Ticket" style="margin-bottom: 24px;">
+            <label class="form-label">Total Bill</label>
+            <div class="currency-input-group">
+                <span class="currency-symbol">৳</span>
+                <input type="text" class="amount-input" id="plan-total-bill" placeholder="0" value="">
+            </div>
+            <label class="form-label">Member Contributions</label>
+            <div id="plan-members-grid" class="plan-members-grid"></div>
+            <button class="btn-primary" onclick="savePlan()" style="margin-top: 32px;">Save Plan</button>
+        </div>
+
+        <!-- SCREEN 4: SETTLEMENT -->
+        <div id="screen-settlement" class="screen">
+            <div style="display: flex; align-items: center; margin-bottom: 32px;">
+                <button class="back-btn" onclick="showScreen('screen-dashboard')">←</button>
+                <h2 class="page-title" style="margin-left: 8px;">Settlement <span class="brand-creator">by Saidul</span></h2>
+            </div>
+            <div class="glass-panel" style="text-align: center; margin-bottom: 32px;">
+                <p style="margin-bottom: 8px; color: var(--text-muted); font-size: 14px; font-weight: 600;">Total Trip Cost</p>
+                <h1 id="settlement-total" style="color: var(--primary-light); font-size: 36px; font-weight: 900;">৳ 0</h1>
+                <div id="settlement-comment" style="margin-top: 8px; font-size: 13px; font-weight: 500; min-height: 20px; color: var(--text-muted);"></div>
+            </div>
+            <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 16px;">How to settle up</h3>
+            <div id="settlement-transactions"></div>
+            <div style="margin-top: 48px; text-align: center;">
+                <button class="btn-secondary" onclick="exportReport()" style="width: auto; padding: 14px 32px; font-size: 14px;">📄 Export Report</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+        // ==================== PRECISION HELPERS ====================
+        function round2(val) {
+            return Math.round((parseFloat(val) || 0) * 100) / 100;
+        }
+        function safeParse(val) {
+            if (!val || val === '') return 0;
+            if (/[+\-*/]/.test(String(val))) {
+                try {
+                    const sanitized = String(val).replace(/[^0-9+\-*/.()]/g, '');
+                    if (sanitized && /[+\-*/]/.test(sanitized)) {
+                        const result = new Function('return ' + sanitized)();
+                        return isFinite(result) ? round2(result) : 0;
+                    }
+                } catch(e) {}
+            }
+            return round2(val);
+        }
+
+        // ==================== HELPERS ====================
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        function escapeJs(str) {
+            return str.replace(/'/g, "\'").replace(/"/g, '\"');
+        }
+        function safeId(name) {
+            return name.replace(/[^a-zA-Z0-9]/g, '_');
+        }
+
+        // ==================== STAR FIELD GENERATOR ====================
+        function generateStars() {
+            const container = document.getElementById('star-field');
+            if (!container) return;
+            for (let i = 0; i < 30; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDelay = (Math.random() * 3) + 's';
+                star.style.animationDuration = (2 + Math.random() * 2) + 's';
+                const size = 1 + Math.random() * 2;
+                star.style.width = size + 'px';
+                star.style.height = size + 'px';
+                container.appendChild(star);
+            }
+        }
+
+        // ==================== NATIVE AUTO-CALCULATE (no custom calculator UI) ====================
+        // Uses the device's own keyboard. If the user types a math expression like
+        // "200+300", it is automatically evaluated into "500" once the field loses focus.
+        function closeCalculator() {
+            // No-op: the custom calculator overlay has been removed per user request.
+            // Kept as a safe stub because many existing call sites still invoke it.
+        }
+
+        function autoCalculateInput(input) {
+            const val = input.value.trim();
+            if (!val) return;
+            if (/[+\-*/]/.test(val)) {
+                try {
+                    const sanitized = val.replace(/[^0-9+\-*/.()]/g, '');
+                    if (sanitized && /[+\-*/]/.test(sanitized)) {
+                        const result = new Function('return ' + sanitized)();
+                        if (isFinite(result)) {
+                            const rounded = round2(result);
+                            input.value = rounded;
+                            input.dispatchEvent(new Event('change', { bubbles: true }));
+                        }
+                    }
+                } catch (e) {}
+            }
+        }
+
+        function attachCalculator() {
+            setTimeout(() => {
+                const inputs = document.querySelectorAll('input[type="number"], input[type="text"].amount-input, input.plan-total-input, input.amount-input-inline');
+                inputs.forEach(input => {
+                    if (input.dataset.calcAttached === 'true') return;
+                    input.dataset.calcAttached = 'true';
+                    input.addEventListener('blur', function() {
+                        autoCalculateInput(this);
+                    });
+                });
+            }, 100);
+        }
+
+        // ==================== STATE ====================
+        let appState = {
+            journeys: [],
+            currentJourneyId: null
+        };
+        let isEditingId = null;
+        let activeMenuId = null;
+        let activePlanCard = null;
+
+        // ==================== TOAST ====================
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2500);
+        }
+
+        // ==================== MENU CLEANUP ====================
+        function closeAllMenus() {
+            if (activeMenuId) {
+                const oldMenu = document.getElementById(activeMenuId);
+                if (oldMenu) oldMenu.remove();
+                activeMenuId = null;
+            }
+            if (activePlanCard) {
+                activePlanCard.style.zIndex = '';
+                activePlanCard = null;
+            }
+            document.querySelectorAll('.member-options-menu').forEach(m => {
+                if (m.parentNode) m.remove();
+            });
+            document.querySelectorAll('[id^="add-plan-options-"]').forEach(m => m.style.display = 'none');
+        }
+
+        // ==================== INIT ====================
+        window.onload = function() {
+            generateStars();
+            loadData();
+            attachCalculator();
+            if ('serviceWorker' in navigator) {
+                const swCode = "self.addEventListener('install', e => self.skipWaiting()); self.addEventListener('activate', e => e.waitUntil(self.clients.claim())); self.addEventListener('fetch', e => e.respondWith(fetch(e.request).catch(() => caches.match(e.request))));";
+                const blob = new Blob([swCode], { type: 'application/javascript' });
+                const swUrl = URL.createObjectURL(blob);
+                navigator.serviceWorker.register(swUrl);
+            }
+        };
+
+        function loadData() {
+            try {
+                const saved = localStorage.getItem('appData');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    if (parsed && Array.isArray(parsed.journeys)) {
+                        appState = parsed;
+                    }
+                }
+            } catch (e) {
+                // Corrupted storage, start fresh
+            }
+            renderJourneyList();
+            showListView();
+        }
+
+        function saveData() {
+            try {
+                localStorage.setItem('appData', JSON.stringify(appState));
+            } catch (e) {
+                showToast('Storage error');
+            }
+        }
+
+        // ==================== NAVIGATION ====================
+        function showScreen(screenId) {
+            closeCalculator();
+            closeAllMenus();
+
+            if (screenId === 'screen-setup') {
+                showListView();
+            }
+
+            if (screenId === 'screen-settlement') {
+                const journey = getCurrentJourney();
+                if (!journey || !journey.plans) return;
+
+                let missingPlans = [];
+                let overpaidPlans = [];
+                let changeMissing = [];
+
+                journey.plans.forEach((p, idx) => {
+                    const sum = p.members.reduce((acc, m) => acc + (m.paidAmount || 0), 0);
+                    const total = p.totalBill || 0;
+                    const diff = round2(sum - total);
+                    if (diff < -0.1) missingPlans.push({ title: p.title, amount: Math.abs(diff) });
+                    else if (diff > 0.1) {
+                        overpaidPlans.push({ title: p.title, amount: diff });
+                        if (!p.changeHolder) changeMissing.push(p.title);
+                    }
+                });
+
+                if (missingPlans.length > 0) {
+                    const list = missingPlans.map(p => p.title + ': BDT ' + p.amount.toFixed(0)).join('\n');
+                    alert("Missing amounts found. Please adjust member amounts to match the total bill.\n\n" + list);
+                    return;
+                }
+
+                if (changeMissing.length > 0) {
+                    alert("Please select a Change Holder for these plans:\n" + changeMissing.join('\n'));
+                    return;
+                }
+
+                if (overpaidPlans.length > 0) {
+                    const totalChange = overpaidPlans.reduce((sum, p) => sum + p.amount, 0);
+                    showToast("Overpaid by BDT " + totalChange.toFixed(0) + ". Change distributed.");
+                }
+
+                calculateSettlement();
+            }
+
+            const fab = document.getElementById('main-fab');
+            if (fab) fab.style.display = (screenId === 'screen-dashboard') ? 'flex' : 'none';
+
+            document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+            const targetScreen = document.getElementById(screenId);
+            if (targetScreen) targetScreen.classList.add('active');
+            attachCalculator();
+        }
+
+        // ==================== HOME SCREEN ====================
+        function showListView() {
+            closeCalculator();
+            closeAllMenus();
+            const listView = document.getElementById('view-journey-list');
+            const createView = document.getElementById('view-create-journey');
+            if (listView) listView.style.display = 'block';
+            if (createView) createView.style.display = 'none';
+            renderJourneyList();
+        }
+
+        function showCreateView() {
+            closeCalculator();
+            closeAllMenus();
+            isEditingId = null;
+            const listView = document.getElementById('view-journey-list');
+            const createView = document.getElementById('view-create-journey');
+            if (listView) listView.style.display = 'none';
+            if (createView) createView.style.display = 'block';
+
+            const titleEl = document.getElementById('create-view-title');
+            const btnEl = document.getElementById('btn-save-journey');
+            if (titleEl) titleEl.innerText = "New Journey";
+            if (btnEl) btnEl.innerText = "Start Planning →";
+
+            const nameInput = document.getElementById('journey-name');
+            if (nameInput) nameInput.value = '';
+
+            const membersContainer = document.getElementById('members-container');
+            if (membersContainer) {
+                membersContainer.innerHTML = '';
+                addMemberInput();
+                addMemberInput();
+            }
+            attachCalculator();
+        }
+
+        function renderJourneyList() {
+            const container = document.getElementById('saved-journeys-container');
+            const countEl = document.getElementById('total-trips-count');
+            if (!container) return;
+            container.innerHTML = '';
+            if (countEl) countEl.innerText = appState.journeys.length + ' Trips';
+
+            if (appState.journeys.length === 0) {
+                container.innerHTML = '<div class="empty-state" style="padding: 60px 20px;"><div style="font-size: 48px; margin-bottom: 16px;">🗺️</div><div style="font-size: 16px; font-weight: 700; margin-bottom: 8px;">No trips yet</div><div style="font-size: 14px; color: var(--text-muted);">Create your first journey to start splitting expenses!</div></div>';
+                return;
+            }
+
+            appState.journeys.forEach((journey, idx) => {
+                const el = document.createElement('div');
+                el.className = 'journey-item animate-in';
+                el.style.animationDelay = (idx * 0.05) + 's';
+                el.innerHTML = '<div class="journey-info" onclick="openJourney(' + journey.id + ')"><h3>' + escapeHtml(journey.name) + '</h3><p>' + journey.members.length + ' Travelers • ' + new Date(journey.id).toLocaleDateString() + '</p></div><div class="journey-actions"><button class="btn-icon" onclick="event.stopPropagation(); editJourney(' + journey.id + ')" title="Edit">✎</button><button class="btn-icon" onclick="event.stopPropagation(); deleteJourney(' + journey.id + ')" title="Delete">✕</button></div>';
+                container.appendChild(el);
+            });
+        }
+
+        function deleteJourney(id) {
+            if (confirm("Are you sure you want to delete this journey?")) {
+                closeCalculator();
+                closeAllMenus();
+                appState.journeys = appState.journeys.filter(j => j.id !== id);
+                if (appState.currentJourneyId === id) appState.currentJourneyId = null;
+                saveData();
+                renderJourneyList();
+                showToast("Journey deleted");
+            }
+        }
+
+        function editJourney(id) {
+            const journey = appState.journeys.find(j => j.id === id);
+            if (!journey) return;
+            closeCalculator();
+            closeAllMenus();
+            isEditingId = id;
+            const listView = document.getElementById('view-journey-list');
+            const createView = document.getElementById('view-create-journey');
+            if (listView) listView.style.display = 'none';
+            if (createView) createView.style.display = 'block';
+
+            const titleEl = document.getElementById('create-view-title');
+            const btnEl = document.getElementById('btn-save-journey');
+            if (titleEl) titleEl.innerText = "Edit Journey";
+            if (btnEl) btnEl.innerText = "Update Journey";
+
+            const nameInput = document.getElementById('journey-name');
+            if (nameInput) nameInput.value = journey.name;
+
+            const container = document.getElementById('members-container');
+            if (container) {
+                container.innerHTML = '';
+                journey.members.forEach(m => addMemberInput(m));
+            }
+        }
+
+        function createNewJourney() {
+            const jNameEl = document.getElementById('journey-name');
+            const jName = jNameEl ? jNameEl.value.trim() : '';
+            const inputs = document.querySelectorAll('.member-name-input');
+            const memberList = [];
+            inputs.forEach(input => {
+                if (input.value && input.value.trim()) memberList.push(input.value.trim());
+            });
+
+            if (!jName) { alert("Please enter a Journey Name!"); return; }
+            if (memberList.length < 2) { alert("Please add at least 2 travelers!"); return; }
+
+            const wasEditing = isEditingId !== null;
+
+            if (isEditingId) {
+                const journey = appState.journeys.find(j => j.id === isEditingId);
+                if (journey) {
+                    journey.name = jName;
+                    journey.members = memberList;
+                }
+                isEditingId = null;
+            } else {
+                appState.journeys.push({
+                    id: Date.now(),
+                    name: jName,
+                    members: memberList,
+                    expenses: [],
+                    plans: []
+                });
+            }
+
+            saveData();
+            showListView();
+            showToast(wasEditing ? "Journey updated" : "Journey created");
+        }
+
+        function openJourney(id) {
+            closeCalculator();
+            closeAllMenus();
+            appState.currentJourneyId = id;
+            const journey = appState.journeys.find(j => j.id === id);
+            if (!journey) return;
+            if (!journey.plans) journey.plans = [];
+            const dashTitle = document.getElementById('dashboard-title');
+            if (dashTitle) dashTitle.innerText = journey.name;
+            renderPlans();
+            updateDashboardTotals();
+            showScreen('screen-dashboard');
+        }
+
+        // ==================== FORM HELPERS ====================
+        function addMemberInput(initialValue) {
+            const container = document.getElementById('members-container');
+            if (!container) return;
+            const count = container.children.length + 1;
+            const div = document.createElement('div');
+            div.className = 'avatar-input-row';
+            div.innerHTML = '<div class="avatar-placeholder" style="background: ' + getRandomGradient() + '">' + count + '</div><input type="text" class="member-name-input" placeholder="Name ' + count + '" value="' + (initialValue ? escapeHtml(initialValue) : '') + '" style="flex: 1;">' + (count > 1 ? '<button class="btn-icon" onclick="this.parentElement.remove(); updateMemberCount()" style="flex-shrink: 0;">✕</button>' : '');
+            container.appendChild(div);
+            updateMemberCount();
+        }
+
+        function updateMemberCount() {
+            const rows = document.querySelectorAll('#members-container .avatar-input-row');
+            const countEl = document.getElementById('member-count');
+            if (countEl) countEl.innerText = rows.length;
+            rows.forEach((row, idx) => {
+                const avatar = row.querySelector('.avatar-placeholder');
+                if (avatar) avatar.textContent = idx + 1;
+            });
+        }
+
+        function getRandomGradient() {
+            const colors = [
+                ['#7c3aed', '#db2777'], ['#3b82f6', '#8b5cf6'],
+                ['#06b6d4', '#3b82f6'], ['#f43f5e', '#f97316'],
+                ['#10b981', '#06b6d4'], ['#8b5cf6', '#ec4899'],
+                ['#f59e0b', '#d97706'], ['#6366f1', '#a855f7']
+            ];
+            const rand = colors[Math.floor(Math.random() * colors.length)];
+            return 'linear-gradient(135deg, ' + rand[0] + ', ' + rand[1] + ')';
+        }
+
+        // ==================== DASHBOARD ====================
+        function updateDashboardTotals() {
+            const journey = getCurrentJourney();
+            if (!journey || !journey.plans) return;
+
+            let totalExpense = 0;
+            const memberTotals = {};
+            journey.members.forEach(name => memberTotals[name] = 0);
+
+            journey.plans.forEach(plan => {
+                totalExpense += round2(plan.totalBill || 0);
+                plan.members.forEach(member => {
+                    const amount = member.paidAmount || 0;
+                    memberTotals[member.name] = round2((memberTotals[member.name] || 0) + amount);
+                });
+            });
+
+            const displayTotal = document.getElementById('display-total');
+            if (displayTotal) displayTotal.innerText = totalExpense;
+
+            const container = document.getElementById('member-totals-container');
+            if (!container) return;
+            container.innerHTML = '';
+            journey.members.forEach((name, idx) => {
+                const card = document.createElement('div');
+                card.className = 'member-total-card animate-in';
+                card.style.animationDelay = (idx * 0.05) + 's';
+                card.innerHTML = '<h4>' + escapeHtml(name) + '</h4><div class="amount">৳' + (memberTotals[name] || 0) + '</div>';
+                container.appendChild(card);
+            });
+        }
+
+        // ==================== PLANS ====================
+        function renderPlans() {
+            const journey = getCurrentJourney();
+            if (!journey) return;
+            const container = document.getElementById('plans-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            if (!journey.plans || journey.plans.length === 0) {
+                container.innerHTML = '<div class="empty-state">No plans yet.<br>Tap + to add one.</div>';
+                return;
+            }
+
+            journey.plans.forEach((plan, index) => {
+                let sumPaid = 0;
+                plan.members.forEach(m => sumPaid += round2(m.paidAmount || 0));
+                const diff = round2((plan.totalBill || 0) - sumPaid);
+
+                let statusClass = '';
+                let statusText = '';
+                if (plan.totalBill > 0) {
+                    if (Math.abs(diff) < 1) { statusClass = ''; statusText = '✓ Settled'; }
+                    else if (diff > 0) { statusClass = 'warning'; statusText = '⚠ Missing ৳' + diff.toFixed(0); }
+                    else { statusClass = 'info'; statusText = '↩ Change ৳' + Math.abs(diff).toFixed(0); }
+                }
+
+                const activeMembers = plan.members.filter(m => m.participated !== false);
+                const isAll = activeMembers.length === plan.members.length;
+                const participantsNames = activeMembers.map(m => m.name).join(', ');
+
+                const changeAmount = round2(sumPaid - (plan.totalBill || 0));
+                const hasChange = changeAmount > 0.1;
+
+                let changeHolderOptions = '<option value="">-- Select --</option>';
+                plan.members.forEach(m => {
+                    const selected = (plan.changeHolder === m.name) ? ' selected' : '';
+                    changeHolderOptions += '<option value="' + escapeHtml(m.name) + '"' + selected + '>' + escapeHtml(m.name) + '</option>';
+                });
+
+                const card = document.createElement('div');
+                card.className = 'plan-card animate-in';
+                card.style.animationDelay = (index * 0.05) + 's';
+
+                let changeHtml = '';
+                if (hasChange) {
+                    changeHtml = '<div class="change-summary-bar">';
+                    changeHtml += '<div class="change-info">';
+                    changeHtml += '<span class="change-label">💰 Change</span>';
+                    changeHtml += '<span class="change-amount">৳' + changeAmount.toFixed(0) + '</span>';
+                    changeHtml += '</div>';
+                    changeHtml += '<div class="change-holder-wrap">';
+                    changeHtml += '<span class="change-holder-label">Held by:</span>';
+                    changeHtml += '<select class="change-holder-select" onchange="updateChangeHolder(' + index + ', this.value)">' + changeHolderOptions + '</select>';
+                    changeHtml += '</div></div>';
+                }
+
+                card.innerHTML = '<div class="plan-header"><div style="flex: 1; min-width: 0;"><h3>' + escapeHtml(plan.title || 'Plan ' + (index + 1)) + '</h3><div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 4px;">' + (statusText ? '<span class="plan-status ' + statusClass + '">' + statusText + '</span>' : '') + '<span style="font-size: 11px; color: ' + (isAll ? 'var(--text-muted)' : 'var(--accent)') + '; font-weight: 500;">' + (!isAll ? '⚠️ ' : '') + 'Shared by: ' + (isAll ? 'Everyone' : escapeHtml(participantsNames)) + '</span></div></div><div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;"><span style="font-size: 12px; color: var(--text-muted); font-weight: 600;">Total: ৳</span><input type="text" class="plan-total-input" value="' + (plan.totalBill || '') + '" onchange="updatePlanTotal(' + index + ', this.value)" placeholder="0"><button class="btn-icon" onclick="deletePlan(' + index + ')" title="Delete">✕</button></div></div>' + changeHtml + '<div class="plan-members-grid" id="plan-' + index + '-members"></div>';
+                container.appendChild(card);
+
+                const memberGrid = document.getElementById('plan-' + index + '-members');
+                if (memberGrid) {
+                    plan.members.forEach((member, mIndex) => {
+                        memberGrid.appendChild(createMemberBox(member, index, mIndex));
+                    });
+                }
+            });
+
+            attachCalculator();
+        }
+
+        function updateChangeHolder(planIndex, holderName) {
+            const journey = getCurrentJourney();
+            if (!journey || !journey.plans[planIndex]) return;
+            journey.plans[planIndex].changeHolder = holderName;
+            saveData();
+            showToast('Change holder: ' + (holderName || 'None'));
+        }
+
+        function updatePlanTotal(planIndex, value) {
+            const journey = getCurrentJourney();
+            if (!journey || !journey.plans[planIndex]) return;
+            const finalVal = safeParse(value);
+            journey.plans[planIndex].totalBill = finalVal;
+
+            // Auto-select change holder: person who paid the most
+            const plan = journey.plans[planIndex];
+            let maxPaid = -1;
+            let maxPayer = '';
+            let sumPaid = 0;
+            plan.members.forEach(m => {
+                const paid = round2(m.paidAmount || 0);
+                sumPaid += paid;
+                if (paid > maxPaid) { maxPaid = paid; maxPayer = m.name; }
+            });
+            if (sumPaid > finalVal && maxPayer && !plan.changeHolder) {
+                plan.changeHolder = maxPayer;
+            }
+
+            saveData();
+            closeCalculator();
+            closeAllMenus();
+            renderPlans();
+            updateDashboardTotals();
+        }
+
+        function createMemberBox(member, planIndex, memberIndex) {
+            const isParticipating = member.participated !== false;
+            const box = document.createElement('div');
+            box.className = 'member-box' + (isParticipating ? '' : ' not-participated');
+            box.id = 'member-' + planIndex + '-' + memberIndex;
+
+            box.innerHTML = '<div class="member-name">' + escapeHtml(member.name) + '</div><input type="text" class="amount-input-inline" value="' + (member.paidAmount || '') + '" placeholder="0" onchange="updateMemberAmount(' + planIndex + ', ' + memberIndex + ', this.value)">' + (member.treatAmount > 0 ? '<small style="color: var(--secondary); font-size: 10px; font-weight: 600;">🎁 Treat: ৳' + member.treatAmount + '</small>' : '') + '<div style="display: flex; align-items: center; justify-content: space-between; margin-top: 6px;"><label style="font-size: 11px; display: flex; align-items: center; gap: 6px; color: var(--text-muted); cursor: pointer; font-weight: 500;"><input type="checkbox" ' + (isParticipating ? 'checked' : '') + ' onchange="toggleParticipation(' + planIndex + ', ' + memberIndex + ')"> Join</label><div class="member-options-icon" onclick="event.stopPropagation(); toggleOptionsMenu(' + planIndex + ', ' + memberIndex + ')">⋮</div></div>';
+            return box;
+        }
+
+        function updateMemberAmount(planIndex, memberIndex, value) {
+            const journey = getCurrentJourney();
+            if (!journey || !journey.plans[planIndex]) return;
+            const finalVal = safeParse(value);
+            journey.plans[planIndex].members[memberIndex].paidAmount = finalVal;
+            saveData();
+            closeCalculator();
+            closeAllMenus();
+            updateDashboardTotals();
+            renderPlans();
+        }
+
+        function toggleParticipation(planIndex, memberIndex) {
+            const journey = getCurrentJourney();
+            if (!journey || !journey.plans[planIndex]) return;
+            const member = journey.plans[planIndex].members[memberIndex];
+            if (!member) return;
+            member.participated = !((member.participated !== false));
+            if (member.participated === false) {
+                member.paidAmount = 0;
+                member.treatAmount = 0;
+            }
+            saveData();
+            closeCalculator();
+            closeAllMenus();
+            renderPlans();
+            updateDashboardTotals();
+        }
+
+        function toggleOptionsMenu(planIndex, memberIndex) {
+            const menuId = 'menu-' + planIndex + '-' + memberIndex;
+            if (activeMenuId) {
+                const oldMenu = document.getElementById(activeMenuId);
+                if (oldMenu) oldMenu.remove();
+                if (activePlanCard) { activePlanCard.style.zIndex = ''; activePlanCard = null; }
+                if (activeMenuId === menuId) { activeMenuId = null; return; }
+            }
+
+            const journey = getCurrentJourney();
+            if (!journey || !journey.plans[planIndex]) return;
+            const member = journey.plans[planIndex].members[memberIndex];
+            if (!member) return;
+            const memberBox = document.getElementById('member-' + planIndex + '-' + memberIndex);
+            if (!memberBox) return;
+            const planCard = memberBox.closest('.plan-card');
+            if (planCard) { planCard.style.zIndex = '50'; activePlanCard = planCard; }
+
+            const menu = document.createElement('div');
+            menu.id = menuId;
+            menu.className = 'member-options-menu';
+            const isParticipating = member.participated !== false;
+
+            let loansHtml = '';
+            journey.members.forEach(otherName => {
+                if (otherName === member.name) return;
+                const loanAmount = (member.loans && member.loans[otherName]) || 0;
+                const safeOther = escapeJs(otherName);
+                loansHtml += '<div class="option-row" style="margin-top: 4px;"><label style="font-size: 11px; color: var(--text-muted);">to ' + escapeHtml(otherName) + '</label><input type="text" value="' + loanAmount + '" style="width: 60px; font-size: 12px; padding: 4px;" onchange="updateLoan(' + planIndex + ', ' + memberIndex + ', \'' + safeOther + '\', this.value)"></div>';
+            });
+
+            menu.innerHTML = '<div class="option-row"><label>Participated</label><input type="checkbox" ' + (isParticipating ? 'checked' : '') + ' onchange="toggleParticipation(' + planIndex + ', ' + memberIndex + ')"></div><div class="option-row"><label>Treat (৳)</label><input type="text" value="' + (member.treatAmount || '') + '" onchange="updateTreat(' + planIndex + ', ' + memberIndex + ', this.value)"></div><div style="border-top: 1px solid var(--border); margin-top: 8px; padding-top: 8px;"><label style="font-size: 12px; font-weight: 700; color: var(--accent); display: block; margin-bottom: 6px;">Contribute (Lend)</label>' + loansHtml + '</div>';
+
+            memberBox.appendChild(menu);
+            activeMenuId = menuId;
+
+            setTimeout(() => {
+                document.addEventListener('click', function closeMenu(e) {
+                    if (!menu.contains(e.target) && !e.target.closest('.member-options-icon')) {
+                        menu.remove();
+                        activeMenuId = null;
+                        if (activePlanCard) { activePlanCard.style.zIndex = ''; activePlanCard = null; }
+                        document.removeEventListener('click', closeMenu);
+                    }
+                });
+            }, 100);
+        }
+
+        function updateLoan(planIndex, memberIndex, borrowerName, value) {
+            const journey = getCurrentJourney();
+            if (!journey || !journey.plans[planIndex]) return;
+            const member = journey.plans[planIndex].members[memberIndex];
+            if (!member) return;
+            if (!member.loans) member.loans = {};
+            const finalVal = safeParse(value);
+            member.loans[borrowerName] = finalVal;
+            saveData();
+            updateDashboardTotals();
+        }
+
+        function updateTreat(planIndex, memberIndex, value) {
+            const journey = getCurrentJourney();
+            if (!journey || !journey.plans[planIndex]) return;
+            const finalVal = safeParse(value);
+            journey.plans[planIndex].members[memberIndex].treatAmount = finalVal;
+            saveData();
+            closeCalculator();
+            closeAllMenus();
+            renderPlans();
+            updateDashboardTotals();
+        }
+
+        function deletePlan(index) {
+            if (confirm("Delete this plan?")) {
+                closeCalculator();
+                closeAllMenus();
+                const journey = getCurrentJourney();
+                if (journey && journey.plans) {
+                    journey.plans.splice(index, 1);
+                    saveData();
+                    renderPlans();
+                    updateDashboardTotals();
+                    showToast("Plan deleted");
+                }
+            }
+        }
+
+        // ==================== ADD PLAN SCREEN ====================
+        function addNewPlan() {
+            closeCalculator();
+            closeAllMenus();
+            const journey = getCurrentJourney();
+            if (!journey) return;
+            showScreen('screen-add');
+            renderPlanMemberInputs(journey.members);
+            const titleInput = document.getElementById('plan-title');
+            const totalInput = document.getElementById('plan-total-bill');
+            if (titleInput) titleInput.value = '';
+            if (totalInput) totalInput.value = '';
+        }
+
+        function renderPlanMemberInputs(memberNames) {
+            const grid = document.getElementById('plan-members-grid');
+            if (!grid) return;
+            grid.innerHTML = '';
+            memberNames.forEach((name, index) => {
+                const box = document.createElement('div');
+                box.className = 'member-box';
+                box.style.position = 'relative';
+
+                let loansHtml = '';
+                memberNames.forEach((otherName, otherIndex) => {
+                    if (otherIndex === index) return;
+                    loansHtml += '<div class="option-row" style="margin-top: 4px;"><label style="font-size: 11px; color: var(--text-muted);">to ' + escapeHtml(otherName) + '</label><input type="text" id="lend-to-' + safeId(otherName) + '-' + index + '" value="" placeholder="0" style="width: 60px; text-align: right; font-size: 11px;"></div>';
+                });
+
+                box.innerHTML = '<div class="member-options-icon" onclick="toggleAddPlanOptions(' + index + ')" style="top: 6px; right: 6px;">⚙️</div><div class="member-name">' + escapeHtml(name) + '</div><input type="text" class="amount-input-inline" id="amount-' + index + '" placeholder="0" value=""><div id="add-plan-options-' + index + '" class="member-options-menu" style="display: none; z-index: 100;"><div class="option-row"><label style="font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 600;"><input type="checkbox" id="participated-menu-' + index + '" checked> Participated</label></div><div class="option-row" style="margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border);"><span style="font-size: 11px; color: var(--text-muted);">Treat (৳):</span><input type="text" id="treat-' + index + '" value="" placeholder="0" style="width: 60px; text-align: right;"></div><div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border);"><label style="font-size: 11px; font-weight: 700; color: var(--accent); margin-bottom: 6px; display: block;">Contribute (Lend)</label>' + loansHtml + '</div></div>';
+                grid.appendChild(box);
+            });
+            attachCalculator();
+        }
+
+        function toggleAddPlanOptions(memberIndex) {
+            const menu = document.getElementById('add-plan-options-' + memberIndex);
+            if (menu) menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function savePlan() {
+            closeCalculator();
+            closeAllMenus();
+            const journey = getCurrentJourney();
+            if (!journey) return;
+
+            const titleInput = document.getElementById('plan-title');
+            const title = titleInput ? titleInput.value.trim() : '';
+            if (!title) { alert("Please enter a plan name!"); return; }
+
+            const planMembers = journey.members.map((name, index) => {
+                const loans = {};
+                journey.members.forEach((otherName, otherIndex) => {
+                    if (otherIndex !== index) {
+                        const inputEl = document.getElementById('lend-to-' + safeId(otherName) + '-' + index);
+                        const finalVal = safeParse(inputEl ? inputEl.value : '');
+                        if (finalVal > 0) loans[otherName] = finalVal;
+                    }
+                });
+
+                const finalPaid = safeParse(document.getElementById('amount-' + index) ? document.getElementById('amount-' + index).value : '');
+                const finalTreat = safeParse(document.getElementById('treat-' + index) ? document.getElementById('treat-' + index).value : '');
+                const partInput = document.getElementById('participated-menu-' + index);
+
+                return {
+                    name: name,
+                    paidAmount: finalPaid,
+                    participated: partInput ? partInput.checked : true,
+                    treatAmount: finalTreat,
+                    loans: loans
+                };
+            });
+
+            if (planMembers.filter(m => m.participated).length === 0) {
+                alert("At least one person must participate!");
+                return;
+            }
+
+            const finalTotal = safeParse(document.getElementById('plan-total-bill') ? document.getElementById('plan-total-bill').value : '');
+
+            // Auto-select change holder
+            let changeHolder = '';
+            let maxPaid = -1;
+            let sumPaid = 0;
+            planMembers.forEach(m => {
+                const paid = m.paidAmount || 0;
+                sumPaid += paid;
+                if (paid > maxPaid) { maxPaid = paid; changeHolder = m.name; }
+            });
+            if (sumPaid <= finalTotal) changeHolder = '';
+
+            journey.plans.push({
+                id: Date.now(),
+                title: title,
+                totalBill: finalTotal,
+                changeHolder: changeHolder,
+                members: planMembers
+            });
+
+            saveData();
+            showScreen('screen-dashboard');
+            renderPlans();
+            updateDashboardTotals();
+            showToast("Plan saved");
+        }
+
+        // ==================== SETTLEMENT ====================
+        function calculateSettlement() {
+            const journey = getCurrentJourney();
+            if (!journey || !journey.plans) return;
+
+            const balances = {};
+            journey.members.forEach(name => balances[name] = 0);
+            let totalTripExpense = 0;
+            const memberPlanDetails = {};
+            journey.members.forEach(name => memberPlanDetails[name] = []);
+
+            journey.plans.forEach(plan => {
+                let planTotalPaid = 0;
+                const participants = plan.members.filter(m => m.participated !== false);
+                plan.members.forEach(m => planTotalPaid += round2(m.paidAmount || 0));
+                totalTripExpense += round2(plan.totalBill || 0);
+
+                const totalBill = round2(plan.totalBill || 0);
+                const changeReturned = round2(planTotalPaid - totalBill);
+                const baseShare = participants.length > 0 ? round2(totalBill / participants.length) : 0;
+                const changeHolder = plan.changeHolder || '';
+
+                plan.members.forEach(member => {
+                    const paid = round2(member.paidAmount || 0);
+                    const isParticipating = member.participated !== false;
+                    const myTreatGiven = round2(member.treatAmount || 0);
+                    const myChangeReceived = (member.name === changeHolder) ? changeReturned : 0;
+                    let myCost = 0;
+
+                    if (isParticipating) myCost += baseShare;
+                    myCost += myTreatGiven;
+
+                    plan.members.forEach(otherMember => {
+                        if (otherMember.name === member.name) return;
+                        const otherTreat = round2(otherMember.treatAmount || 0);
+                        if (otherTreat > 0) {
+                            const giverParticipates = otherMember.participated !== false;
+                            let receiverCount = participants.length;
+                            if (giverParticipates) receiverCount -= 1;
+                            if (receiverCount > 0 && isParticipating) {
+                                myCost -= round2(otherTreat / receiverCount);
+                            }
+                        }
+                    });
+
+                    const effectivePaid = round2(paid - myChangeReceived);
+                    const balance = round2(effectivePaid - myCost);
+                    balances[member.name] = round2(balances[member.name] + balance);
+
+                    // Store detailed breakdown
+                    memberPlanDetails[member.name].push({
+                        planTitle: plan.title,
+                        totalBill: totalBill,
+                        totalPaid: planTotalPaid,
+                        changeReturned: changeReturned,
+                        changeHolder: changeHolder,
+                        baseShare: baseShare,
+                        paid: paid,
+                        isParticipating: isParticipating,
+                        myTreatGiven: myTreatGiven,
+                        myChangeReceived: myChangeReceived,
+                        effectivePaid: effectivePaid,
+                        myCost: myCost,
+                        balance: balance,
+                        participants: participants.map(p => p.name),
+                        treatDiscounts: plan.members.filter(om => om.treatAmount > 0 && om.name !== member.name).map(om => ({
+                            name: om.name,
+                            amount: om.treatAmount,
+                            discount: (isParticipating && participants.length > 1) ? round2(om.treatAmount / (participants.length - (om.participated !== false ? 1 : 0))) : 0
+                        }))
+                    });
+                });
+
+                plan.members.forEach(member => {
+                    if (member.loans) {
+                        Object.keys(member.loans).forEach(borrowerName => {
+                            const amount = round2(member.loans[borrowerName] || 0);
+                            if (amount > 0 && balances[borrowerName] !== undefined) {
+                                balances[member.name] = round2(balances[member.name] + amount);
+                                balances[borrowerName] = round2(balances[borrowerName] - amount);
+                            }
+                        });
+                    }
+                });
+            });
+
+            // Round balances
+            const balanceNames = Object.keys(balances);
+            let roundedBalances = {};
+            let sum = 0;
+            balanceNames.forEach(name => {
+                const b = Math.round(balances[name]);
+                roundedBalances[name] = b;
+                sum += b;
+            });
+            if (sum !== 0 && balanceNames.length > 0) {
+                const largest = balanceNames.reduce((a, b) => Math.abs(roundedBalances[a]) > Math.abs(roundedBalances[b]) ? a : b);
+                roundedBalances[largest] -= sum;
+            }
+
+            const debtors = [];
+            const creditors = [];
+            balanceNames.forEach(name => {
+                const b = roundedBalances[name];
+                if (b < 0) debtors.push({ name, amount: -b });
+                else if (b > 0) creditors.push({ name, amount: b });
+            });
+
+            const transactions = [];
+            let i = 0, j = 0;
+            while (i < debtors.length && j < creditors.length) {
+                const debtor = debtors[i];
+                const creditor = creditors[j];
+                const amount = Math.min(debtor.amount, creditor.amount);
+                if (amount > 0) transactions.push({ from: debtor.name, to: creditor.name, amount: amount });
+                debtor.amount -= amount;
+                creditor.amount -= amount;
+                if (debtor.amount === 0) i++;
+                if (creditor.amount === 0) j++;
+            }
+
+            const settlementTotal = document.getElementById('settlement-total');
+            if (settlementTotal) settlementTotal.innerText = '৳ ' + totalTripExpense;
+
+            const commentEl = document.getElementById('settlement-comment');
+            if (commentEl) {
+                commentEl.innerText = '';
+                if (journey.members.length > 0 && totalTripExpense > 5000) {
+                    commentEl.innerText = "Large group expense recorded";
+                    commentEl.style.color = 'var(--accent)';
+                }
+            }
+
+            const container = document.getElementById('settlement-transactions');
+            if (!container) return;
+            container.innerHTML = '';
+
+            if (transactions.length === 0) {
+                container.innerHTML = '<div class="empty-state">All settled! No payments needed.</div>';
+                return;
+            }
+
+            transactions.forEach((txn, index) => {
+                const card = document.createElement('div');
+                card.className = 'settlement-card animate-in';
+                card.style.animationDelay = (index * 0.05) + 's';
+
+                // Build detailed breakdown for debtor - ALL PLANS
+                let breakdownHtml = '';
+                const debtorDetails = memberPlanDetails[txn.from] || [];
+
+                debtorDetails.forEach(detail => {
+                    let detailsHtml = '';
+
+                    if (detail.isParticipating) {
+                        detailsHtml += '<div class="breakdown-step">[OK] Participated in this plan</div>';
+                        detailsHtml += '<div class="breakdown-step">Step 1: Fair Share = ' + detail.totalBill.toFixed(0) + ' / ' + detail.participants.length + ' = BDT ' + detail.baseShare.toFixed(2) + '</div>';
+
+                        if (detail.myChangeReceived > 0) {
+                            detailsHtml += '<div class="breakdown-step highlight">Step 2: You received BDT ' + detail.myChangeReceived.toFixed(2) + ' change (held by ' + escapeHtml(detail.changeHolder) + ')</div>';
+                        } else if (detail.changeReturned > 0) {
+                            detailsHtml += '<div class="breakdown-step">Step 2: Change BDT ' + detail.changeReturned.toFixed(2) + ' held by ' + escapeHtml(detail.changeHolder) + ' (not you)</div>';
+                        } else {
+                            detailsHtml += '<div class="breakdown-step">Step 2: No change returned</div>';
+                        }
+
+                        detailsHtml += '<div class="breakdown-step">Step 3: You Paid = BDT ' + detail.paid.toFixed(0) + '</div>';
+                        detailsHtml += '<div class="breakdown-step">Step 4: Effective Payment = ' + detail.paid.toFixed(0) + ' - ' + detail.myChangeReceived.toFixed(2) + ' = BDT ' + detail.effectivePaid.toFixed(2) + '</div>';
+
+                        if (detail.treatDiscounts.length > 0) {
+                            const validDiscounts = detail.treatDiscounts.filter(td => td.discount > 0);
+                            if (validDiscounts.length > 0) {
+                                detailsHtml += '<div class="breakdown-step credit">[GIFT] Treat Discounts Received:</div>';
+                                validDiscounts.forEach(td => {
+                                    detailsHtml += '<div class="breakdown-step credit" style="padding-left: 16px;">- From ' + escapeHtml(td.name) + ': BDT ' + td.discount.toFixed(2) + '</div>';
+                                });
+                            }
+                        }
+                    } else {
+                        detailsHtml += '<div class="breakdown-step debt">[NO] Did NOT participate in this plan</div>';
+                        detailsHtml += '<div class="breakdown-step">Base Share: BDT 0.00</div>';
+                    }
+
+                    if (detail.myTreatGiven > 0) {
+                        detailsHtml += '<div class="breakdown-step debt">+ My Treat Given: BDT ' + detail.myTreatGiven.toFixed(0) + '</div>';
+                    }
+
+                    detailsHtml += '<div class="breakdown-divider">';
+                    detailsHtml += '<div class="breakdown-meta">Paid: BDT ' + detail.paid.toFixed(0) + ' | Change: BDT ' + detail.myChangeReceived.toFixed(2) + ' | Effective: BDT ' + detail.effectivePaid.toFixed(2) + '</div>';
+                    detailsHtml += '<div class="breakdown-meta">Cost: BDT ' + detail.myCost.toFixed(2) + '</div>';
+                    const balClass = detail.balance >= 0 ? 'credit' : 'debt';
+                    const balText = detail.balance >= 0 ? '+' : '';
+                    const balStatus = detail.balance > 0 ? ' (CREDIT)' : detail.balance < 0 ? ' (DEBT)' : ' (SETTLED)';
+                    detailsHtml += '<div class="breakdown-balance ' + balClass + '">Balance: ' + balText + 'BDT ' + detail.balance.toFixed(2) + balStatus + '</div></div>';
+
+                    const borderClass = detail.balance < 0 ? 'negative' : (detail.balance > 0 ? 'positive' : '');
+                    const bgColor = detail.balance < 0 ? 'rgba(239, 68, 68, 0.06)' : (detail.balance > 0 ? 'rgba(16, 185, 129, 0.05)' : 'var(--bg-input)');
+
+                    breakdownHtml += '<div class="breakdown-plan ' + borderClass + '" style="background: ' + bgColor + ';"><div class="breakdown-plan-title">📋 ' + escapeHtml(detail.planTitle) + '</div><div class="breakdown-meta">Bill: BDT ' + detail.totalBill.toFixed(0) + ' | Paid: BDT ' + detail.totalPaid.toFixed(0) + ' | Change: BDT ' + detail.changeReturned.toFixed(2) + ' | Participants: ' + detail.participants.length + '</div>' + detailsHtml + '</div>';
+                });
+
+                // Aggregate calculation
+                let planBalances = debtorDetails.map(d => ({ title: d.planTitle, balance: d.balance }));
+                let aggHtml = '';
+                if (planBalances.length > 0) {
+                    const totalBal = round2(planBalances.reduce((s, pb) => s + pb.balance, 0));
+                    aggHtml = '<div class="aggregate-box"><div class="agg-title">📊 Aggregate Calculation</div>';
+                    planBalances.forEach(pb => {
+                        const sign = pb.balance >= 0 ? '+' : '';
+                        aggHtml += '<div class="agg-line">' + escapeHtml(pb.title) + ': ' + sign + pb.balance.toFixed(1) + ' BDT</div>';
+                    });
+                    aggHtml += '<div class="agg-result">Sum: ' + planBalances.map(pb => (pb.balance >= 0 ? '+' : '') + pb.balance.toFixed(1)).join(' + ') + ' = ' + (totalBal >= 0 ? '+' : '') + totalBal.toFixed(1) + ' BDT</div>';
+                    aggHtml += '<div class="agg-result" style="margin-top: 4px; color: var(--primary-light);">Therefore: ' + escapeHtml(txn.from) + ' pays ' + escapeHtml(txn.to) + ' = BDT ' + txn.amount + '</div>';
+                    aggHtml += '</div>';
+                }
+
+                card.innerHTML = '<div class="settlement-main"><div class="avatar-placeholder" style="width: 36px; height: 36px; font-size: 14px; background: ' + getRandomGradient() + '">' + (index + 1) + '</div><div style="flex: 1;"><div style="font-weight: 700; font-size: 15px;">' + escapeHtml(txn.from) + '</div><small style="color: var(--text-muted); font-size: 12px;">pays ' + escapeHtml(txn.to) + '</small></div><div class="settlement-amount">BDT ' + txn.amount + '</div></div>' + (breakdownHtml ? '<div class="settlement-breakdown" id="breakdown-' + index + '">' + breakdownHtml + aggHtml + '</div><div class="view-breakdown-btn" onclick="document.getElementById(\'breakdown-' + index + '\').classList.toggle(\'show\'); this.style.display=\'none\';">View Deep Breakdown ▼</div>' : '');
+                container.appendChild(card);
+            });
+        }
+
+        // ==================== PDF EXPORT SYSTEM ====================
+        async function exportReport() {
+            const journey = getCurrentJourney();
+            if (!journey) return;
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: 'a4',
+                putOnlyUsedFonts: true,
+                floatPrecision: 16
+            });
+
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const margin = 15;
+            const contentWidth = pageWidth - (margin * 2);
+            let y = 20;
+
+            // Helper: Add text with auto page break
+            function addText(text, x, yPos, options) {
+                const opts = options || {};
+                const lines = doc.splitTextToSize(text, contentWidth);
+                const lineHeight = opts.lineHeight || 5;
+                if (yPos + (lines.length * lineHeight) > 280) {
+                    doc.addPage();
+                    yPos = 20;
+                }
+                doc.text(lines, x, yPos, opts);
+                return yPos + (lines.length * lineHeight);
+            }
+
+            // Helper: Add colored header box
+            function addHeaderBox(title, yPos) {
+                doc.setFillColor(139, 92, 246);
+                doc.roundedRect(margin, yPos - 4, contentWidth, 8, 2, 2, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(11);
+                doc.setFont('helvetica', 'bold');
+                doc.text(title, margin + 3, yPos + 1);
+                return yPos + 8;
+            }
+
+            // ===== COVER PAGE =====
+            doc.setFillColor(11, 15, 25);
+            doc.rect(0, 0, pageWidth, doc.internal.pageSize.getHeight(), 'F');
+
+            // Title
+            doc.setTextColor(167, 139, 250);
+            doc.setFontSize(28);
+            doc.setFont('helvetica', 'bold');
+            doc.text('JOURNEY SPLIT', pageWidth / 2, 60, { align: 'center' });
+
+            doc.setTextColor(148, 163, 184);
+            doc.setFontSize(12);
+            doc.setFont('helvetica', 'normal');
+            doc.text('Smart Expense Report', pageWidth / 2, 70, { align: 'center' });
+
+            // Trip Info Box
+            doc.setFillColor(21, 27, 43);
+            doc.roundedRect(margin, 85, contentWidth, 45, 5, 5, 'F');
+            doc.setDrawColor(139, 92, 246, 0.3);
+            doc.roundedRect(margin, 85, contentWidth, 45, 5, 5, 'S');
+
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(14);
+            doc.setFont('helvetica', 'bold');
+            doc.text('Trip: ' + journey.name, margin + 5, 95);
+
+            doc.setTextColor(148, 163, 184);
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'normal');
+            doc.text('Date: ' + new Date().toLocaleDateString('en-GB') + ' ' + new Date().toLocaleTimeString('en-GB'), margin + 5, 102);
+            doc.text('Members: ' + journey.members.join(', '), margin + 5, 108);
+            doc.text('Total Plans: ' + (journey.plans ? journey.plans.length : 0), margin + 5, 114);
+
+            let totalTrip = 0;
+            if (journey.plans) {
+                journey.plans.forEach(p => totalTrip += round2(p.totalBill || 0));
+            }
+            doc.setTextColor(167, 139, 250);
+            doc.setFontSize(16);
+            doc.setFont('helvetica', 'bold');
+            doc.text('Total Expense: BDT ' + totalTrip.toFixed(0), margin + 5, 124);
+
+            doc.addPage();
+            y = 20;
+
+            // ===== PLAN BREAKDOWNS =====
+            if (!journey.plans || journey.plans.length === 0) {
+                y = addHeaderBox('NO PLANS RECORDED', y);
+                doc.setTextColor(100, 116, 139);
+                doc.setFontSize(10);
+                y = addText('No expense plans have been added to this journey yet.', margin, y);
+            } else {
+                journey.plans.forEach((plan, planIdx) => {
+                    if (y > 240) { doc.addPage(); y = 20; }
+
+                    y = addHeaderBox('PLAN ' + (planIdx + 1) + ': ' + plan.title.toUpperCase(), y);
+
+                    let planTotalPaid = 0;
+                    const participants = plan.members.filter(m => m.participated !== false);
+                    plan.members.forEach(m => planTotalPaid += round2(m.paidAmount || 0));
+
+                    const totalBill = round2(plan.totalBill || 0);
+                    const changeReturned = round2(planTotalPaid - totalBill);
+                    const baseShare = participants.length > 0 ? round2(totalBill / participants.length) : 0;
+                    const changeHolder = plan.changeHolder || 'Not specified';
+
+                    // Plan summary table
+                    const planSummary = [
+                        ['Total Bill', 'BDT ' + totalBill.toFixed(0)],
+                        ['Total Paid', 'BDT ' + planTotalPaid.toFixed(0)],
+                        ['Change Returned', 'BDT ' + changeReturned.toFixed(2)],
+                        ['Change Holder', changeHolder],
+                        ['Participants', participants.map(p => p.name).join(', ') + ' (' + participants.length + ')'],
+                        ['Base Share', 'BDT ' + baseShare.toFixed(2) + ' per person']
+                    ];
+
+                    doc.autoTable({
+                        startY: y,
+                        margin: { left: margin, right: margin },
+                        body: planSummary,
+                        theme: 'plain',
+                        styles: { fontSize: 9, cellPadding: 2, textColor: [71, 85, 105] },
+                        columnStyles: {
+                            0: { fontStyle: 'bold', textColor: [30, 41, 59], cellWidth: 55 },
+                            1: { textColor: [124, 58, 237], fontStyle: 'bold' }
+                        },
+                        didDrawPage: function() {}
+                    });
+                    y = doc.lastAutoTable.finalY + 5;
+
+                    // Member calculations
+                    plan.members.forEach(member => {
+                        if (y > 240) { doc.addPage(); y = 20; }
+
+                        const paid = round2(member.paidAmount || 0);
+                        const isParticipating = member.participated !== false;
+                        const myTreatGiven = round2(member.treatAmount || 0);
+                        const myChange = (member.name === changeHolder) ? changeReturned : 0;
+
+                        let myCost = 0;
+                        if (isParticipating) myCost += baseShare;
+                        myCost += myTreatGiven;
+
+                        let treatDiscounts = [];
+                        plan.members.forEach(om => {
+                            if (om.name === member.name) return;
+                            const otherTreat = round2(om.treatAmount || 0);
+                            if (otherTreat > 0) {
+                                const giverPart = om.participated !== false;
+                                let rc = participants.length;
+                                if (giverPart) rc -= 1;
+                                if (rc > 0 && isParticipating) {
+                                    const disc = round2(otherTreat / rc);
+                                    myCost -= disc;
+                                    treatDiscounts.push({ name: om.name, amount: disc });
+                                }
+                            }
+                        });
+
+                        const effectivePaid = round2(paid - myChange);
+                        const balance = round2(effectivePaid - myCost);
+
+                        const memberData = [
+                            ['Status', isParticipating ? '✓ Participated' : '✗ Did NOT participate'],
+                            ['Fair Share Formula', isParticipating ? ('BDT ' + totalBill.toFixed(0) + ' ÷ ' + participants.length + ' = BDT ' + baseShare.toFixed(2)) : 'Not applicable'],
+                            ['Base Share', 'BDT ' + (isParticipating ? baseShare.toFixed(2) : '0.00')],
+                            ['Amount Paid', 'BDT ' + paid.toFixed(0)],
+                            ['Change Received', myChange > 0 ? ('BDT ' + myChange.toFixed(2) + ' (held change)') : 'BDT 0.00'],
+                            ['Effective Payment', 'BDT ' + paid.toFixed(0) + ' - BDT ' + myChange.toFixed(2) + ' = BDT ' + effectivePaid.toFixed(2)],
+                            ['My Treat Given', 'BDT ' + myTreatGiven.toFixed(0)]
+                        ];
+
+                        if (treatDiscounts.length > 0) {
+                            treatDiscounts.forEach(td => {
+                                memberData.push(['Treat Discount from ' + td.name, '-BDT ' + td.amount.toFixed(2)]);
+                            });
+                        }
+
+                        memberData.push(['TOTAL COST', 'BDT ' + myCost.toFixed(2)]);
+                        memberData.push(['CALCULATION', 'BDT ' + effectivePaid.toFixed(2) + ' - BDT ' + myCost.toFixed(2) + ' = ' + (balance >= 0 ? '+' : '') + 'BDT ' + balance.toFixed(2)]);
+                        memberData.push(['FINAL BALANCE', (balance >= 0 ? '+BDT ' + balance.toFixed(2) + ' (Creditor)' : '-BDT ' + Math.abs(balance).toFixed(2) + ' (Debtor)')]);
+
+                        doc.autoTable({
+                            startY: y,
+                            margin: { left: margin + 5, right: margin },
+                            head: [[{ content: member.name.toUpperCase(), colSpan: 2 }]],
+                            body: memberData,
+                            theme: 'grid',
+                            headStyles: {
+                                fillColor: balance >= 0 ? [16, 185, 129] : [239, 68, 68],
+                                textColor: [255, 255, 255],
+                                fontSize: 10,
+                                fontStyle: 'bold',
+                                halign: 'left'
+                            },
+                            styles: { fontSize: 8, cellPadding: 2.5, textColor: [51, 65, 85], fillColor: [255, 255, 255], lineColor: [226, 232, 240], lineWidth: 0.1 },
+                            columnStyles: {
+                                0: { fontStyle: 'bold', textColor: [15, 23, 42], cellWidth: 55 },
+                                1: { textColor: [124, 58, 237], fontStyle: 'bold', halign: 'right' }
+                            },
+                            alternateRowStyles: { fillColor: [246, 244, 255] },
+                            didParseCell: function(data) {
+                                if (data.section === 'body' && data.row.raw[0] === 'FINAL BALANCE') {
+                                    data.cell.styles.fillColor = balance >= 0 ? [220, 252, 231] : [254, 226, 226];
+                                    data.cell.styles.textColor = balance >= 0 ? [5, 122, 85] : [185, 28, 28];
+                                    data.cell.styles.fontStyle = 'bold';
+                                    data.cell.styles.fontSize = 9;
+                                }
+                            }
+                        });
+                        y = doc.lastAutoTable.finalY + 8;
+                    });
+
+                    y += 5;
+                });
+            }
+
+            // ===== OVERALL SUMMARY PAGE =====
+            doc.addPage();
+            y = 20;
+            y = addHeaderBox('OVERALL SUMMARY', y);
+
+            // Calculate member stats
+            const memberStats = {};
+            journey.members.forEach(name => memberStats[name] = { paid: 0, cost: 0, loanGiven: 0, loanTaken: 0, changeReceived: 0 });
+
+            if (journey.plans) {
+                journey.plans.forEach(plan => {
+                    const participants = plan.members.filter(m => m.participated !== false);
+                    const totalBill = round2(plan.totalBill || 0);
+                    const baseShare = participants.length > 0 ? round2(totalBill / participants.length) : 0;
+                    const planTotalPaid = plan.members.reduce((s, m) => s + round2(m.paidAmount || 0), 0);
+                    const changeReturned = round2(planTotalPaid - totalBill);
+                    const changeHolder = plan.changeHolder || '';
+
+                    plan.members.forEach(member => {
+                        const paid = round2(member.paidAmount || 0);
+                        const isParticipating = member.participated !== false;
+                        const myTreatGiven = round2(member.treatAmount || 0);
+                        const myChange = (member.name === changeHolder) ? changeReturned : 0;
+
+                        let myCost = 0;
+                        if (isParticipating) myCost += baseShare;
+                        myCost += myTreatGiven;
+
+                        plan.members.forEach(om => {
+                            if (om.name === member.name) return;
+                            const ot = round2(om.treatAmount || 0);
+                            if (ot > 0 && (om.participated !== false)) {
+                                const rc = participants.length - 1;
+                                if (rc > 0 && isParticipating) myCost -= round2(ot / rc);
+                            }
+                        });
+
+                        memberStats[member.name].paid += paid;
+                        memberStats[member.name].cost += myCost;
+                        memberStats[member.name].changeReceived += myChange;
+                    });
+
+                    plan.members.forEach(m => {
+                        if (m.loans) {
+                            Object.keys(m.loans).forEach(b => {
+                                const amt = round2(m.loans[b] || 0);
+                                if (amt > 0) {
+                                    memberStats[m.name].loanGiven += amt;
+                                    if (memberStats[b]) memberStats[b].loanTaken += amt;
+                                }
+                            });
+                        }
+                    });
+                });
+            }
+
+            const summaryData = journey.members.map(name => {
+                const s = memberStats[name];
+                const net = round2((s.paid + s.loanGiven) - (s.changeReceived + s.cost + s.loanTaken));
+                return [name, 'BDT ' + Math.round(s.paid), 'BDT ' + Math.round(s.changeReceived), 'BDT ' + Math.round(s.cost), (net >= 0 ? '+' : '') + 'BDT ' + Math.round(net)];
+            });
+
+            doc.autoTable({
+                startY: y,
+                margin: { left: margin, right: margin },
+                head: [['Member', 'Total Paid', 'Change Received', 'Total Cost', 'Net Balance']],
+                body: summaryData,
+                theme: 'grid',
+                headStyles: {
+                    fillColor: [139, 92, 246],
+                    textColor: [255, 255, 255],
+                    fontSize: 10,
+                    fontStyle: 'bold'
+                },
+                styles: { fontSize: 9, cellPadding: 3, textColor: [51, 65, 85], fillColor: [255, 255, 255] },
+                columnStyles: {
+                    0: { fontStyle: 'bold', textColor: [15, 23, 42] },
+                    4: { fontStyle: 'bold' }
+                },
+                alternateRowStyles: { fillColor: [246, 244, 255] },
+                didParseCell: function(data) {
+                    if (data.section === 'body' && data.column.index === 4) {
+                        const val = parseFloat(data.cell.raw.replace(/[^0-9.\-]/g, ''));
+                        if (val > 0) data.cell.styles.textColor = [5, 122, 85];
+                        else if (val < 0) data.cell.styles.textColor = [185, 28, 28];
+                    }
+                }
+            });
+            y = doc.lastAutoTable.finalY + 10;
+
+            // ===== SETTLEMENT DETAILS =====
+            if (y > 220) { doc.addPage(); y = 20; }
+            y = addHeaderBox('FINAL SETTLEMENT', y);
+
+            // Recalculate settlement for PDF
+            const balances = {};
+            journey.members.forEach(name => balances[name] = 0);
+            if (journey.plans) {
+                journey.plans.forEach(plan => {
+                    const participants = plan.members.filter(m => m.participated !== false);
+                    const totalBill = round2(plan.totalBill || 0);
+                    const baseShare = participants.length > 0 ? round2(totalBill / participants.length) : 0;
+                    const planTotalPaid = plan.members.reduce((s, m) => s + round2(m.paidAmount || 0), 0);
+                    const changeReturned = round2(planTotalPaid - totalBill);
+                    const changeHolder = plan.changeHolder || '';
+
+                    plan.members.forEach(member => {
+                        const paid = round2(member.paidAmount || 0);
+                        const isParticipating = member.participated !== false;
+                        let myCost = 0;
+                        if (isParticipating) myCost += baseShare;
+                        if ((member.treatAmount || 0) > 0) myCost += round2(member.treatAmount);
+                        plan.members.forEach(om => {
+                            if (om.name === member.name) return;
+                            const ot = round2(om.treatAmount || 0);
+                            if (ot > 0 && (om.participated !== false)) {
+                                const rc = participants.length - 1;
+                                if (rc > 0 && isParticipating) myCost -= round2(ot / rc);
+                            }
+                        });
+                        const myChange = (member.name === changeHolder) ? changeReturned : 0;
+                        const effectivePaid = round2(paid - myChange);
+                        balances[member.name] = round2(balances[member.name] + (effectivePaid - myCost));
+                    });
+
+                    plan.members.forEach(m => {
+                        if (m.loans) {
+                            Object.keys(m.loans).forEach(b => {
+                                const amt = round2(m.loans[b] || 0);
+                                if (amt > 0 && balances[b] !== undefined) {
+                                    balances[m.name] = round2(balances[m.name] + amt);
+                                    balances[b] = round2(balances[b] - amt);
+                                }
+                            });
+                        }
+                    });
+                });
+            }
+
+            const balanceNames = Object.keys(balances);
+            let roundedBalances = {};
+            let sum = 0;
+            balanceNames.forEach(name => {
+                const b = Math.round(balances[name]);
+                roundedBalances[name] = b;
+                sum += b;
+            });
+            if (sum !== 0 && balanceNames.length > 0) {
+                const largest = balanceNames.reduce((a, b) => Math.abs(roundedBalances[a]) > Math.abs(roundedBalances[b]) ? a : b);
+                roundedBalances[largest] -= sum;
+            }
+
+            const debtors = [];
+            const creditors = [];
+            balanceNames.forEach(name => {
+                const b = roundedBalances[name];
+                if (b < 0) debtors.push({ name, amount: -b });
+                else if (b > 0) creditors.push({ name, amount: b });
+            });
+
+            const transactions = [];
+            let di = 0, ci = 0;
+            while (di < debtors.length && ci < creditors.length) {
+                const debtor = debtors[di];
+                const creditor = creditors[ci];
+                const amount = Math.min(debtor.amount, creditor.amount);
+                if (amount > 0) transactions.push({ from: debtor.name, to: creditor.name, amount: amount });
+                debtor.amount -= amount;
+                creditor.amount -= amount;
+                if (debtor.amount === 0) di++;
+                if (creditor.amount === 0) ci++;
+            }
+
+            if (transactions.length === 0) {
+                doc.setTextColor(16, 185, 129);
+                doc.setFontSize(12);
+                doc.setFont('helvetica', 'bold');
+                y = addText('✓ All settled! No payments needed.', margin, y);
+            } else {
+                const txnData = transactions.map((txn, idx) => [
+                    (idx + 1).toString(),
+                    txn.from,
+                    txn.to,
+                    'BDT ' + txn.amount
+                ]);
+
+                doc.autoTable({
+                    startY: y,
+                    margin: { left: margin, right: margin },
+                    head: [['#', 'Payer', 'Receiver', 'Amount']],
+                    body: txnData,
+                    theme: 'grid',
+                    headStyles: {
+                        fillColor: [139, 92, 246],
+                        textColor: [255, 255, 255],
+                        fontSize: 10
+                    },
+                    styles: { fontSize: 10, cellPadding: 4, textColor: [51, 65, 85], fillColor: [255, 255, 255] },
+                    columnStyles: {
+                        0: { cellWidth: 15, halign: 'center', textColor: [15, 23, 42] },
+                        1: { fontStyle: 'bold', textColor: [185, 28, 28] },
+                        2: { fontStyle: 'bold', textColor: [5, 122, 85] },
+                        3: { fontStyle: 'bold', textColor: [124, 58, 237], halign: 'right' }
+                    },
+                    alternateRowStyles: { fillColor: [246, 244, 255] }
+                });
+                y = doc.lastAutoTable.finalY + 10;
+
+                // Detailed calculation for each transaction
+                transactions.forEach((txn, idx) => {
+                    if (y > 220) { doc.addPage(); y = 20; }
+
+                    doc.setFillColor(21, 27, 43);
+                    doc.roundedRect(margin, y, contentWidth, 8, 2, 2, 'F');
+                    doc.setDrawColor(139, 92, 246, 0.3);
+                    doc.roundedRect(margin, y, contentWidth, 8, 2, 2, 'S');
+                    doc.setTextColor(167, 139, 250);
+                    doc.setFontSize(10);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text('Payment ' + (idx + 1) + ': ' + txn.from + ' → ' + txn.to + ' = BDT ' + txn.amount, margin + 3, y + 5.5);
+                    y += 12;
+
+                    let planBalances = [];
+                    if (journey.plans) {
+                        journey.plans.forEach(p => {
+                            const participants = p.members.filter(m => m.participated !== false);
+                            if (participants.length === 0) return;
+                            const ptp = p.members.reduce((s, m) => s + round2(m.paidAmount || 0), 0);
+                            const tb = round2(p.totalBill || 0);
+                            const cr = round2(ptp - tb);
+                            const bs = round2(tb / participants.length);
+                            const ch = p.changeHolder || '';
+
+                            const debtorM = p.members.find(m => m.name === txn.from);
+                            if (!debtorM) return;
+
+                            const isPart = debtorM.participated !== false;
+                            let mc = 0;
+                            if (isPart) mc += bs;
+                            if ((debtorM.treatAmount || 0) > 0) mc += round2(debtorM.treatAmount);
+                            p.members.forEach(om => {
+                                if (om.name === debtorM.name) return;
+                                const ot = round2(om.treatAmount || 0);
+                                if (ot > 0 && (om.participated !== false)) {
+                                    const rc = participants.length - 1;
+                                    if (rc > 0 && isPart) mc -= round2(ot / rc);
+                                }
+                            });
+                            const pd = round2(debtorM.paidAmount || 0);
+                            const myc = (debtorM.name === ch) ? cr : 0;
+                            const ep = round2(pd - myc);
+                            const bal = round2(ep - mc);
+                            // Include EVERY plan the member is part of, not just the ones with a negative
+                            // balance, so the full per-plan calculation trail is visible (matches in-app breakdown).
+                            planBalances.push({ title: p.title, balance: bal });
+                        });
+                    }
+
+                    if (planBalances.length > 0) {
+                        const calcLines = planBalances.map(pb => (pb.balance >= 0 ? '+' : '') + pb.balance.toFixed(1) + ' BDT   (' + pb.title + ')');
+                        const totalBal = round2(planBalances.reduce((s, pb) => s + pb.balance, 0));
+                        calcLines.push('');
+                        calcLines.push('Sum: ' + planBalances.map(pb => '(' + pb.balance.toFixed(1) + ')').join(' + ') + ' = ' + totalBal.toFixed(1) + ' BDT net balance');
+                        calcLines.push('Rounded Settlement Amount: BDT ' + txn.amount);
+
+                        doc.setTextColor(71, 85, 105);
+                        doc.setFontSize(8.5);
+                        doc.setFont('helvetica', 'normal');
+                        calcLines.forEach(line => {
+                            y = addText(line, margin + 5, y, { lineHeight: 4.5 });
+                        });
+                    }
+                    y += 5;
+                });
+            }
+
+            // Footer
+            doc.setTextColor(100, 116, 139);
+            doc.setFontSize(8);
+            doc.setFont('helvetica', 'italic');
+            doc.text('Generated by Journey Split • ' + journey.name, pageWidth / 2, 290, { align: 'center' });
+
+            // Save
+            const filename = journey.name.replace(/[^a-z0-9]/gi, '_') + '_Report_' + new Date().toISOString().slice(0,10) + '.pdf';
+            doc.save(filename);
+            showToast("PDF Report downloaded!");
+        }
+
+        function getCurrentJourney() {
+            return appState.journeys.find(j => j.id === appState.currentJourneyId);
+        }
+
+        // Close menus on outside click
+        document.addEventListener('click', function(event) {
+            const clicked = event.target;
+            if (!clicked.closest('.member-options-menu') && !clicked.closest('.member-options-icon')) {
+                document.querySelectorAll('.member-options-menu').forEach(m => {
+                    if (m.parentNode) m.remove();
+                });
+                document.querySelectorAll('[id^="add-plan-options-"]').forEach(m => m.style.display = 'none');
+                if (activePlanCard) {
+                    activePlanCard.style.zIndex = '';
+                    activePlanCard = null;
+                }
+                activeMenuId = null;
+            }
+        });
+    </script>
+</body>
+</html>
