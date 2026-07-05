@@ -74,9 +74,14 @@
         @keyframes starTwinkle { 0%, 100% { opacity: 0; transform: scale(0.5); } 50% { opacity: 0.8; transform: scale(1.2); } }
         @keyframes logoFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
 
-        .brand-title { font-size: 30px; font-weight: 800; letter-spacing: -0.5px; color: var(--text-primary); text-align: center; }
-        .brand-subtitle { font-size: 14px; color: var(--text-muted); text-align: center; margin-top: 6px; font-weight: 500; }
-        .brand-creator { font-size: 12px; color: var(--primary-light); font-weight: 600; opacity: 0.9; }
+        .brand-title { font-size: 36px; font-weight: 900; letter-spacing: 1px; text-align: center; background: linear-gradient(135deg, #f472b6, #a78bfa, #60a5fa, #34d399, #fbbf24, #f472b6); background-size: 300% 300%; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: titleGradient 5s ease infinite; text-shadow: none; filter: drop-shadow(0 0 18px rgba(139, 92, 246, 0.25)); position: relative; display: inline-block; }
+        .brand-title::after { content: ''; position: absolute; bottom: -4px; left: 50%; transform: translateX(-50%); width: 60%; height: 2px; background: linear-gradient(90deg, transparent, #a78bfa, transparent); border-radius: 2px; }
+        .brand-subtitle { font-size: 14px; color: var(--text-muted); text-align: center; margin-top: 4px; font-weight: 500; }
+        .brand-subtitle.rainbow-text { background: linear-gradient(90deg, #f472b6, #fbbf24, #34d399, #60a5fa, #a78bfa, #f472b6); background-size: 400% 100%; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: rainbowShift 4s linear infinite; font-weight: 700; letter-spacing: 0.5px; }
+        .brand-creator { font-size: 12px; color: var(--primary-light); font-weight: 600; opacity: 0.9; -webkit-text-fill-color: var(--primary-light); }
+        @keyframes titleGradient { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        @keyframes rainbowShift { 0% { background-position: 0% 50%; } 100% { background-position: 400% 50%; } }
+        .stylish-section-title { background: linear-gradient(135deg, #e2e8f0, #a78bfa, #60a5fa); background-size: 200% 200%; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: titleGradient 6s ease infinite; letter-spacing: 2px; text-transform: uppercase; }
         .glass-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px; transition: all 0.25s ease; }
         .glass-card:hover { border-color: var(--border-focus); transform: translateY(-2px); box-shadow: var(--shadow); }
         .glass-panel { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow); }
@@ -206,9 +211,11 @@
         <!-- SCREEN 1: HOME -->
         <div id="screen-setup" class="screen active">
             <div class="setup-container">
-                <div style="text-align: center; margin-bottom: 8px;">
+                <div style="text-align: center; margin-bottom: 4px;">
+                    <div class="brand-title">Journey Split <span class="brand-creator">by Saidul</span></div>
+                    <div class="brand-subtitle rainbow-text">Smart expense splitting for group trips</div>
                     <!-- 3D GALAXY LOGO -->
-                    <div class="galaxy-logo-container">
+                    <div class="galaxy-logo-container" style="margin: 16px auto 8px;">
                         <div class="star-field" id="star-field"></div>
                         <div class="orbit-ring r1"><div class="orbit-particle"></div></div>
                         <div class="orbit-ring r2"><div class="orbit-particle"></div><div class="orbit-particle p2"></div></div>
@@ -219,14 +226,12 @@
                         <div class="galaxy-core"></div>
                         <div class="galaxy-reflection"></div>
                     </div>
-                    <div class="brand-title">Journey Split <span class="brand-creator">by Saidul</span></div>
-                    <div class="brand-subtitle">Smart expense splitting for group trips</div>
                 </div>
 
                 <div id="view-journey-list">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                        <h2 style="margin: 0; font-size: 18px; font-weight: 700;">Your Trips</h2>
-                        <span id="total-trips-count" style="font-size: 12px; color: var(--text-muted); font-weight: 600;">0 Trips</span>
+                    <div style="text-align: center; margin-bottom: 20px; margin-top: 8px;">
+                        <h2 style="margin: 0; font-size: 22px; font-weight: 800;" class="stylish-section-title">Your Trips</h2>
+                        <span id="total-trips-count" style="font-size: 11px; color: var(--text-muted); font-weight: 600; display: block; margin-top: 6px; letter-spacing: 1px;">0 Trips</span>
                     </div>
                     <div id="saved-journeys-container" style="padding-bottom: 20px;"></div>
                     <div class="new-journey-wrap">
