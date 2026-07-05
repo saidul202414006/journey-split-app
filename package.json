@@ -1,6 +1,6 @@
 {
   "name": "JourneySplit",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
@@ -10,9 +10,10 @@
   "dependencies": {
     "react": "19.2.3",
     "react-native": "0.86.0",
+    "react-native-blob-util": "^0.21.2",
+    "react-native-fs": "^2.20.0",
     "react-native-safe-area-context": "^5.5.2",
-    "react-native-webview": "^13.12.5",
-    "react-native-fs": "^2.20.0"
+    "react-native-webview": "^13.12.5"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
